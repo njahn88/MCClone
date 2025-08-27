@@ -8,7 +8,7 @@ Used to create, render, place/remove blocks from chunks.
 */
 struct ChunkManager {
 public:
-    ChunkManager(const double* verticies, size_t count, const glm::vec3* cameraPosition, int renderDistance, unsigned int textureAtlasID) {
+    ChunkManager(const float* verticies, size_t count, const glm::vec3* cameraPosition, int renderDistance, unsigned int textureAtlasID) {
         m_verts = verticies;
         m_count = count;
         m_renderDistance = renderDistance;
@@ -116,7 +116,7 @@ private:
         return nullptr;
     }
 
-    const double* m_verts;
+    const float* m_verts;
     int m_renderDistance;
     size_t m_count;
     const glm::vec3* m_cameraPosition;

@@ -47,7 +47,10 @@ public:
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow* window, ChunkManager& chunkManager);
+glm::vec3 GetDayNightLightPos(float time, float radius, float height);
 unsigned int LoadTextureAtlas();
+
+glm::vec3 lightPos{ 0, -300.f, 0 };
 
 
 int main()
@@ -120,49 +123,54 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    double vertices[] = {
+    float vertices[] = {
         // back face
-        -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // bottom-left
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right    
-         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-right              
-         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-right
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, // top-left
-        -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // bottom-left     
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f, // bottom-left
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f, // bottom-right    
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f, // top-right              
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f, // top-right
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f, // top-left
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f, // bottom-left     
+
         // front face
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-right        
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, // bottom-left
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // top-left 
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // top-left 
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-right        
-        // left face
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-left       
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-right
-        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-right
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-left       
-        // right face
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-right      
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right          
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-left
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-         // bottom face          
-         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-left        
-          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
-         // top face
-         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-          0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right                 
-          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // bottom-left  
-         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f  // top-left      
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, // bottom-right        
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f, // bottom-left
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, // top-left 
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, // top-left 
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f, // top-right
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, // bottom-right        
+
+         // left face
+         -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f, // top-left       
+         -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f, // top-right
+         -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, // bottom-right
+         -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, // bottom-right
+         -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f, // bottom-left
+         -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f, // top-left       
+
+         // right face
+          0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, // top-left
+          0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f, // top-right      
+          0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f, // bottom-right          
+          0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f, // bottom-right
+          0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, // bottom-left
+          0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, // top-left
+
+          // bottom face          
+          -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f, // top-right
+           0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f, // bottom-left
+           0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f, // top-left        
+           0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f, // bottom-left
+          -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f, // top-right
+          -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f, // bottom-right
+
+          // top face
+          -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f, // top-left
+           0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f, // top-right
+           0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, // bottom-right                 
+           0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f, // bottom-right
+          -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f, // bottom-left  
+          -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f  // top-left      
     };
 
     size_t count = sizeof(vertices) / sizeof(vertices[0]);
@@ -227,15 +235,24 @@ int main()
 
         ourShader.use();
 
-        glm::mat4 view = glm::lookAt(*cameraPos, *cameraPos + cameraFront, cameraUp);
-        ourShader.setMat4("view", view);
-
+        float radius2 = 300.0f;
+        float speed = 0.5f; // slower for a full day cycle
+        float x = 200.f;
+        float y = radius2 * sin(glfwGetTime() * speed); // vertical movement
+        float z = 200.0f; // fixed distance
+        glm::vec3 lightPos(x, y, z);
+        ourShader.setVec3("lightPos", lightPos);
 
         int modelLoc = glGetUniformLocation(ourShader.ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
         int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+        glm::mat4 view = glm::lookAt(*cameraPos, *cameraPos + cameraFront, cameraUp);
+        ourShader.setMat4("view", view);
+        ourShader.setVec3("lightPos", lightPos);
+        ourShader.setVec3("lightColor", glm::vec3(1.0, 1.0, 1.0));
 
         chunkManager.DrawChunks();
 
@@ -340,4 +357,15 @@ unsigned int LoadTextureAtlas() {
     stbi_image_free(data);
 
     return textureID;
+}
+
+glm::vec3 GetDayNightLightPos(float time, float radius = 5.0f, float height = 2.0f) {
+    // time is in seconds, can be scaled to control speed
+    float angle = time * 0.1f; // speed of rotation
+
+    float x = radius * cos(angle);
+    float z = radius * sin(angle);
+    float y = height + sin(angle) * 2.0f; // optional vertical variation
+
+    return glm::vec3(x, y, z);
 }

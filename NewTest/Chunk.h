@@ -18,7 +18,7 @@ struct VisibleFaces {
 
 struct Chunk {
 public:
-    Chunk(const double* verticies, size_t count, glm::vec3 chunkOrigin) {
+    Chunk(const float* verticies, size_t count, glm::vec3 chunkOrigin) {
         int xOrigin = chunkOrigin.x;
         int yOrigin = chunkOrigin.y;
         int zOrigin = chunkOrigin.z;
@@ -60,14 +60,21 @@ public:
         GetVisibleVerts();
 
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 
         // texture coord attribute
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+
+
 
         glBindTexture(GL_TEXTURE_2D, textureAtlasID); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+
 
         glBindVertexArray(0);
 
@@ -89,73 +96,103 @@ public:
             float blockTextureWidth = 1.0f / 16.0f;
 
             if (faces.back) { // Back face (-z), offset 0–29
-                for (int v = 0; v < 30; v += 5) {
+                for (int v = 0; v < 48; v += 8) {
                     int atlasYIndex = currentBlock.GetSideTextureIndex() / 16;
-                    double xTextCoord = (m_verticies[v + 3] * blockTextureWidth) + currentBlock.GetSideTextureIndex() * blockTextureWidth;
-                    double yTextCoord = (m_verticies[v + 4] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
+                    double xTextCoord = (m_verticies[v + 6] * blockTextureWidth) + currentBlock.GetSideTextureIndex() * blockTextureWidth;
+                    double yTextCoord = (m_verticies[v + 7] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
                     visibleVertices.push_back((m_verticies[v] + x) + m_chunkOrigin.x);
                     visibleVertices.push_back((m_verticies[v + 1] + y) + m_chunkOrigin.y);
                     visibleVertices.push_back((m_verticies[v + 2] + z) + m_chunkOrigin.z);
+
+                    visibleVertices.push_back(0);
+                    visibleVertices.push_back(0);
+                    visibleVertices.push_back(-1);
+
                     visibleVertices.push_back(xTextCoord);
                     visibleVertices.push_back(yTextCoord);
                 }
             }
             if (faces.front) { // Front face (+z), offset 30–59
-                for (int v = 30; v < 60; v += 5) {
+                for (int v = 48; v < 96; v += 8) {
                     int atlasYIndex = currentBlock.GetSideTextureIndex() / 16;
-                    double xTextCoord = (m_verticies[v + 3] * blockTextureWidth) + currentBlock.GetSideTextureIndex() * blockTextureWidth;
-                    double yTextCoord = (m_verticies[v + 4] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
+                    double xTextCoord = (m_verticies[v + 6] * blockTextureWidth) + currentBlock.GetSideTextureIndex() * blockTextureWidth;
+                    double yTextCoord = (m_verticies[v + 7] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
                     visibleVertices.push_back((m_verticies[v] + x) + m_chunkOrigin.x);
                     visibleVertices.push_back((m_verticies[v + 1] + y) + m_chunkOrigin.y);
                     visibleVertices.push_back((m_verticies[v + 2] + z) + m_chunkOrigin.z);
+
+                    visibleVertices.push_back(0);
+                    visibleVertices.push_back(0);
+                    visibleVertices.push_back(1);
+
                     visibleVertices.push_back(xTextCoord);
                     visibleVertices.push_back(yTextCoord);
                 }
             }
             if (faces.left) { // Left face (-x), offset 60–89
-                for (int v = 60; v < 90; v += 5) {
+                for (int v = 96; v < 144; v += 8) {
                     int atlasYIndex = currentBlock.GetSideTextureIndex() / 16;
-                    double xTextCoord = (m_verticies[v + 3] * blockTextureWidth) + currentBlock.GetSideTextureIndex() * blockTextureWidth;
-                    double yTextCoord = (m_verticies[v + 4] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
+                    double xTextCoord = (m_verticies[v + 6] * blockTextureWidth) + currentBlock.GetSideTextureIndex() * blockTextureWidth;
+                    double yTextCoord = (m_verticies[v + 7] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
                     visibleVertices.push_back((m_verticies[v] + x) + m_chunkOrigin.x);
                     visibleVertices.push_back((m_verticies[v + 1] + y) + m_chunkOrigin.y);
                     visibleVertices.push_back((m_verticies[v + 2] + z) + m_chunkOrigin.z);
+
+                    visibleVertices.push_back(-1);
+                    visibleVertices.push_back(0);
+                    visibleVertices.push_back(0);
+
                     visibleVertices.push_back(xTextCoord);
                     visibleVertices.push_back(yTextCoord);
                 }
             }
             if (faces.right) { // Right face (+x), offset 90–119
-                for (int v = 90; v < 120; v += 5) {
+                for (int v = 144; v < 192; v += 8) {
                     int atlasYIndex = currentBlock.GetSideTextureIndex() / 16;
-                    double xTextCoord = (m_verticies[v + 3] * blockTextureWidth) + currentBlock.GetSideTextureIndex() * blockTextureWidth;
-                    double yTextCoord = (m_verticies[v + 4] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
+                    double xTextCoord = (m_verticies[v + 6] * blockTextureWidth) + currentBlock.GetSideTextureIndex() * blockTextureWidth;
+                    double yTextCoord = (m_verticies[v + 7] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
                     visibleVertices.push_back((m_verticies[v] + x) + m_chunkOrigin.x);
                     visibleVertices.push_back((m_verticies[v + 1] + y) + m_chunkOrigin.y);
                     visibleVertices.push_back((m_verticies[v + 2] + z) + +m_chunkOrigin.z);
+
+                    visibleVertices.push_back(1);
+                    visibleVertices.push_back(0);
+                    visibleVertices.push_back(0);
+
                     visibleVertices.push_back(xTextCoord);
                     visibleVertices.push_back(yTextCoord);
                 }
             }
             if (faces.bottom) { // Bottom face (-y), offset 120–149
-                for (int v = 120; v < 150; v += 5) {
+                for (int v = 192; v < 240; v += 8) {
                     int atlasYIndex = currentBlock.GetBottomTextureIndex() / 16;
-                    double xTextCoord = (m_verticies[v + 3] * blockTextureWidth) + currentBlock.GetBottomTextureIndex() * blockTextureWidth;
-                    double yTextCoord = (m_verticies[v + 4] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
+                    double xTextCoord = (m_verticies[v + 6] * blockTextureWidth) + currentBlock.GetBottomTextureIndex() * blockTextureWidth;
+                    double yTextCoord = (m_verticies[v + 7] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
                     visibleVertices.push_back((m_verticies[v] + x) + m_chunkOrigin.x);
                     visibleVertices.push_back((m_verticies[v + 1] + y) + m_chunkOrigin.y);
                     visibleVertices.push_back((m_verticies[v + 2] + z) + +m_chunkOrigin.z);
+
+                    visibleVertices.push_back(0);
+                    visibleVertices.push_back(-1);
+                    visibleVertices.push_back(0);
+
                     visibleVertices.push_back(xTextCoord);
                     visibleVertices.push_back(yTextCoord);
                 }
             }
             if (faces.top) { // Top face (+y), offset 150–179
-                for (int v = 150; v < 180; v += 5) {
+                for (int v = 240; v < 288; v += 8) {
                     int atlasYIndex = currentBlock.GetTopTextureIndex() / 16;
-                    double xTextCoord = (m_verticies[v + 3] * blockTextureWidth) + currentBlock.GetTopTextureIndex() * blockTextureWidth;
-                    double yTextCoord = (m_verticies[v + 4] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
+                    double xTextCoord = (m_verticies[v + 6] * blockTextureWidth) + currentBlock.GetTopTextureIndex() * blockTextureWidth;
+                    double yTextCoord = (m_verticies[v + 7] * blockTextureWidth) + atlasYIndex * blockTextureWidth;
                     visibleVertices.push_back((m_verticies[v] + x) + m_chunkOrigin.x);
                     visibleVertices.push_back((m_verticies[v + 1] + y) + m_chunkOrigin.y);
                     visibleVertices.push_back((m_verticies[v + 2] + z) + m_chunkOrigin.z);
+
+                    visibleVertices.push_back(0);
+                    visibleVertices.push_back(1);
+                    visibleVertices.push_back(0);
+
                     visibleVertices.push_back(xTextCoord);
                     visibleVertices.push_back(yTextCoord);
                 }
@@ -353,7 +390,7 @@ private:
     bool cubeGrid[16][256][16] = { false };
     unsigned int blockType[16][256][16] = { 4 };
     std::vector<glm::vec3> m_cubePositions{};
-    std::vector<double> m_verticies;
+    std::vector<float> m_verticies;
     glm::vec3 m_chunkOrigin{};
     std::array<Chunk*, 4> m_surroundingChunks{};
     bool m_shouldCalcVisibleVertsFlag = true;
