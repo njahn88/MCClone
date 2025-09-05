@@ -46,7 +46,7 @@ public:
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void processInput(GLFWwindow* window, ChunkManager& chunkManager);
+void processInput(GLFWwindow* window);
 unsigned int LoadTextureAtlas();
 
 
@@ -76,6 +76,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSwapInterval(0);
 
     //Load OpenGl function pointers with glad
     if (!gladLoaderLoadGL())
@@ -120,7 +121,7 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    double vertices[] = {
+    float vertices[] = { //vert data for 0 == verts[0 - 4] == one vert, 1 == verts[5-9] == one vert
         // back face
         -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // bottom-left
          0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right    
@@ -175,22 +176,14 @@ int main()
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
 
 
     unsigned int g_TextureAtlasID = 0;
     g_TextureAtlasID = LoadTextureAtlas();
 
 
-    ChunkManager chunkManager{vertices, count, cameraPos, 7, g_TextureAtlasID};
+    ChunkManager chunkManager{vertices, g_TextureAtlasID, 4, cameraPos};
 
 
 
@@ -201,12 +194,15 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+        processInput(window);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        processInput(window, chunkManager);
+        //processInput(window, chunkManager);
         double currentTime = glfwGetTime();
         frameCount++;
         if (currentTime - previousTime >= 1.0) {
@@ -215,29 +211,15 @@ int main()
             previousTime = currentTime;
         }
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-        const float radius = 10.0f;
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
-        view = glm::lookAt(*cameraPos, *cameraPos + cameraFront, cameraUp);
-
 
         ourShader.use();
 
         glm::mat4 view = glm::lookAt(*cameraPos, *cameraPos + cameraFront, cameraUp);
         ourShader.setMat4("view", view);
+        ourShader.setMat4("model", model);
+        ourShader.setMat4("projection", projection);
 
-
-        int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-        int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-        chunkManager.DrawChunks();
+        chunkManager.Update();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -250,7 +232,7 @@ int main()
     return 0;
 }
 
-void processInput(GLFWwindow* window, ChunkManager& chunkManager)
+void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);

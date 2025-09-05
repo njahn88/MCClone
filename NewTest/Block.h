@@ -12,6 +12,10 @@ public:
     int GetTopTextureIndex() { return m_top_texture_index; }
     int GetSideTextureIndex() { return m_side_texture_index; }
     int GetBottomTextureIndex() { return m_bottom_texture_index; }
+    bool IsAirBlock() {
+        if (m_top_texture_index == 0 && m_bottom_texture_index == 0 && m_side_texture_index == 0) return true;
+        return false;
+    }
 private:
     int m_top_texture_index;
     int m_bottom_texture_index;
