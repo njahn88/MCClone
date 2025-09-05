@@ -183,7 +183,7 @@ int main()
     g_TextureAtlasID = LoadTextureAtlas();
 
 
-    ChunkManager chunkManager{vertices, g_TextureAtlasID, 4, cameraPos};
+    ChunkManager chunkManager{vertices, g_TextureAtlasID, 3, cameraPos};
 
 
 

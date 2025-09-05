@@ -58,8 +58,9 @@ public:
         t.detach();
     }
 
-    void GenerateVisibleVertsAsync() {
+    void GenerateVisibleVertsAsync(std::array<Chunk*, 4> surroundingChunks) {
         if (!m_generating_visible_verts) {
+            m_surroundingChunks = surroundingChunks;
             std::cout << "Generating visible verts" << std::endl;
             std::thread t(&Chunk::GenerateVisibleVerts, this);
             t.detach();
@@ -88,6 +89,10 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
+
+    bool IsBlockPresent(int x, int y, int z) {
+        return !m_blocks[x][y][z].IsAirBlock();
+    }
 private:
     void InitChunkData() {
         for (int x = 0; x < 16; x++) {
@@ -109,12 +114,10 @@ private:
 
             }
         }
-        std::cout << "Finished chunk init" << std::endl;
         m_finished_generating_blocks = true;
     }
 
     void GenerateVisibleVerts() {
-        std::cout << "Started generating visible verts" << std::endl;
         m_visibleVerts.clear();
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 200; y++) {
@@ -200,7 +203,6 @@ private:
                 }
             }
         }
-        std::cout << "finished getting visible verts" << std::endl;
         m_finished_generating_visible_verts = true;
         m_have_chached_visible_verts = false;
     }
@@ -210,23 +212,83 @@ private:
 
         if (m_blocks[x][y][z].IsAirBlock()) return { false, false, false, false, false, false };
 
-        if (x > 0 && !m_blocks[x - 1][y][z].IsAirBlock()) {
-            visibleFaces.left = false;
+        if (x > 0) {
+            if (!m_blocks[x - 1][y][z].IsAirBlock()) {
+                visibleFaces.left = false;
+            }
         }
-        if (x < 15 && !m_blocks[x + 1][y][z].IsAirBlock()) {
-            visibleFaces.right = false;
+        else {
+            if (m_surroundingChunks[1]) {
+                if (m_surroundingChunks[1]->HasFinishedGeneratingBlocks()) {
+                    if (m_surroundingChunks[1]->IsBlockPresent(15, y, z)) {
+                        visibleFaces.left = false;
+                    }
+                }
+            }
+            else {
+                visibleFaces.left = true;
+            }
         }
+
+        if (x < 15) {
+            if (!m_blocks[x + 1][y][z].IsAirBlock()) {
+                visibleFaces.right = false;
+            }
+        }
+        else {
+            if (m_surroundingChunks[0]) {
+                if (m_surroundingChunks[0]->HasFinishedGeneratingBlocks()) {
+                    if (m_surroundingChunks[0]->IsBlockPresent(0, y, z)) {
+                        visibleFaces.right = false;
+                    }
+                }
+            }
+            else {
+                visibleFaces.right = true;
+            }
+        }
+
         if (y > 0 && !m_blocks[x][y - 1][z].IsAirBlock()) {
             visibleFaces.bottom = false;
         }
         if (y < 199 && !m_blocks[x][y + 1][z].IsAirBlock()) {
             visibleFaces.top = false;
         }
-        if (z > 0 && !m_blocks[x][y][z - 1].IsAirBlock()) {
-            visibleFaces.back = false;
+
+        if (z > 0) {
+            if (!m_blocks[x][y][z - 1].IsAirBlock()) {
+                visibleFaces.back = false;
+            }
         }
-        if (z < 15 && !m_blocks[x][y][z + 1].IsAirBlock()) {
-            visibleFaces.front = false;
+        else {
+            if (m_surroundingChunks[3]) {
+                if (m_surroundingChunks[3]->HasFinishedGeneratingBlocks()) {
+                    if (m_surroundingChunks[3]->IsBlockPresent(x, y, 15)) {
+                        visibleFaces.back = false;
+                    }
+                }
+            }
+            else {
+                visibleFaces.back = true;
+            }
+        }
+
+        if (z < 15) {
+            if (!m_blocks[x][y][z + 1].IsAirBlock()) {
+                visibleFaces.front = false;
+            }
+        }
+        else {
+            if (m_surroundingChunks[2]) {
+                if (m_surroundingChunks[2]->HasFinishedGeneratingBlocks()) {
+                    if (m_surroundingChunks[2]->IsBlockPresent(x, y, 0)) {
+                        visibleFaces.front = false;
+                    }
+                }
+            }
+            else {
+                visibleFaces.front = true;
+            }
         }
         return visibleFaces;
     }
@@ -241,4 +303,6 @@ private:
     bool m_generating_visible_verts = false;
     unsigned int m_textureAtlasID;
     bool m_have_chached_visible_verts = false;
+
+    std::array<Chunk*, 4> m_surroundingChunks{nullptr, nullptr, nullptr, nullptr};
 };

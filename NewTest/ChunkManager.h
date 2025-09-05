@@ -62,14 +62,14 @@ private:
             chunkMap[position] = new Chunk{ m_verts, ChunkWorldCoordinates{position.x * 16, position.z * 16},  m_textureAtlasID}; //Create new chunk at position
             chunkMap[position]->InitGL();
             chunkMap[position]->GenerateAsync();
-            std::cout << "Creating new chunk" << std::endl;
         }
     }
 
     void UpdateVisibleVerts(int x, int z) {
         ChunkCoords currentChunkCoords{ x, z };
         if (chunkMap[currentChunkCoords]->HasFinishedGeneratingBlocks()) {
-            chunkMap[currentChunkCoords]->GenerateVisibleVertsAsync();
+            std::array<Chunk*, 4> surroundingChunks = GetSurroundingChunks(currentChunkCoords);
+            chunkMap[currentChunkCoords]->GenerateVisibleVertsAsync(surroundingChunks);
         }
     }
 
@@ -78,6 +78,31 @@ private:
         if (chunkMap[currentChunkCoords]->HasFinishedGeneratingVisibleVerts()) {
             chunkMap[currentChunkCoords]->RenderChunk();
         }
+    }
+
+    std::array<Chunk*, 4> GetSurroundingChunks(ChunkCoords currentChunkCoords) {
+        std::array<Chunk*, 4> surroundingChunks{ nullptr, nullptr, nullptr, nullptr };
+        ChunkCoords rightChunkCoords{ currentChunkCoords.x + 1, currentChunkCoords.z };
+        auto it = chunkMap.find(rightChunkCoords);
+        if (it != chunkMap.end()) { //Right chunk exists
+            surroundingChunks[0] = chunkMap[rightChunkCoords];
+        }
+        ChunkCoords leftChunkCoords{ currentChunkCoords.x - 1, currentChunkCoords.z };
+        auto it2 = chunkMap.find(leftChunkCoords);
+        if (it2 != chunkMap.end()) {
+            surroundingChunks[1] = chunkMap[leftChunkCoords];
+        }
+        ChunkCoords frontChunkCoords{ currentChunkCoords.x, currentChunkCoords.z + 1 };
+        auto it3 = chunkMap.find(frontChunkCoords);
+        if (it3 != chunkMap.end()) {
+            surroundingChunks[2] = chunkMap[frontChunkCoords];
+        }
+        ChunkCoords backChunkCoords{ currentChunkCoords.x, currentChunkCoords.z - 1 };
+        auto it4 = chunkMap.find(backChunkCoords);
+        if (it4 != chunkMap.end()) {
+            surroundingChunks[3] = chunkMap[backChunkCoords];
+        }
+        return surroundingChunks;
     }
     const float* m_verts;
     int m_renderDistance;
