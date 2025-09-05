@@ -183,7 +183,7 @@ int main()
     g_TextureAtlasID = LoadTextureAtlas();
 
 
-    ChunkManager chunkManager{vertices, g_TextureAtlasID, 3, cameraPos};
+    ChunkManager chunkManager{vertices, g_TextureAtlasID, 20, cameraPos};
 
 
 
@@ -245,6 +245,10 @@ void processInput(GLFWwindow* window)
         *cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         *cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        *cameraPos += cameraSpeed * glm::vec3(0, 1, 0);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        *cameraPos += cameraSpeed * glm::vec3(0, -1, 0);
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }

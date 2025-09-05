@@ -59,8 +59,13 @@ public:
     }
 
     void GenerateVisibleVertsAsync(std::array<Chunk*, 4> surroundingChunks) {
+        if (m_all_surrounding_chunks_loaded) return;
         if (!m_generating_visible_verts) {
             m_surroundingChunks = surroundingChunks;
+            for (Chunk* chunk : m_surroundingChunks) {
+                if (chunk == nullptr) return;
+            }
+            m_all_surrounding_chunks_loaded = true;
             std::cout << "Generating visible verts" << std::endl;
             std::thread t(&Chunk::GenerateVisibleVerts, this);
             t.detach();
@@ -305,4 +310,5 @@ private:
     bool m_have_chached_visible_verts = false;
 
     std::array<Chunk*, 4> m_surroundingChunks{nullptr, nullptr, nullptr, nullptr};
+    bool m_all_surrounding_chunks_loaded = false;
 };
