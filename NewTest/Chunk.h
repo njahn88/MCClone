@@ -98,6 +98,22 @@ public:
     bool IsBlockPresent(int x, int y, int z) {
         return !m_blocks[x][y][z].IsAirBlock();
     }
+
+    glm::vec3 GetMin() {
+        return glm::vec3{
+            m_chunkWorldCoords.xWorldPosition,
+            0,
+            m_chunkWorldCoords.zWorldPosition
+        };
+    }
+
+    glm::vec3 GetMax() {
+        return glm::vec3{
+            m_chunkWorldCoords.xWorldPosition + 16,
+            200,
+            m_chunkWorldCoords.zWorldPosition + 16
+        };
+    }
 private:
     void InitChunkData() {
         for (int x = 0; x < 16; x++) {

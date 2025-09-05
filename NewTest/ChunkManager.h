@@ -22,6 +22,14 @@ struct ChunkCoordsHash {
     }
 };
 
+struct Plane {
+    float a, b, c, d;
+    void normalize() {
+        float len = sqrt(a * a + b * b + c * c);
+        a /= len; b /= len; c /= len; d /= len;
+    }
+};
+
 /*
 Used to create, render, place/remove blocks from chunks.
 */
@@ -29,7 +37,8 @@ struct ChunkManager {
 public:
     ChunkManager(const float* verts, unsigned int textureAtlasID, int renderDistance, glm::vec3* cameraPosition) : m_verts(verts), m_textureAtlasID(textureAtlasID), m_renderDistance(renderDistance), m_cameraPosition(cameraPosition) {};
 
-    void Update() {
+    void Update(glm::mat4 VP) {
+        UpdateFrustum(VP);
         OperateOnSurroundingChunks([this](int x, int z) {InitChunk(x, z); });
         OperateOnSurroundingChunks([this](int x, int z) {UpdateVisibleVerts(x, z); });
         OperateOnSurroundingChunks([this](int x, int z) {RenderChunk(x, z); });
@@ -76,10 +85,12 @@ private:
     void RenderChunk(int x, int z) {
         ChunkCoords currentChunkCoords{ x, z };
         if (chunkMap[currentChunkCoords]->HasFinishedGeneratingVisibleVerts()) {
-            chunkMap[currentChunkCoords]->RenderChunk();
+            Chunk* currentChunk = chunkMap[currentChunkCoords];
+            if (isChunkInFrustum(currentChunk->GetMin(), currentChunk->GetMax())) {
+                chunkMap[currentChunkCoords]->RenderChunk();
+            }
         }
     }
-
     std::array<Chunk*, 4> GetSurroundingChunks(ChunkCoords currentChunkCoords) {
         std::array<Chunk*, 4> surroundingChunks{ nullptr, nullptr, nullptr, nullptr };
         ChunkCoords rightChunkCoords{ currentChunkCoords.x + 1, currentChunkCoords.z };
@@ -104,6 +115,39 @@ private:
         }
         return surroundingChunks;
     }
+
+    void UpdateFrustum(glm::mat4 VP) {
+        frustum[0] = { VP[0][3] + VP[0][0], VP[1][3] + VP[1][0], VP[2][3] + VP[2][0], VP[3][3] + VP[3][0] };
+        // Right
+        frustum[1] = { VP[0][3] - VP[0][0], VP[1][3] - VP[1][0], VP[2][3] - VP[2][0], VP[3][3] - VP[3][0] };
+        // Bottom
+        frustum[2] = { VP[0][3] + VP[0][1], VP[1][3] + VP[1][1], VP[2][3] + VP[2][1], VP[3][3] + VP[3][1] };
+        // Top
+        frustum[3] = { VP[0][3] - VP[0][1], VP[1][3] - VP[1][1], VP[2][3] - VP[2][1], VP[3][3] - VP[3][1] };
+        // Near
+        frustum[4] = { VP[0][3] + VP[0][2], VP[1][3] + VP[1][2], VP[2][3] + VP[2][2], VP[3][3] + VP[3][2] };
+        // Far
+        frustum[5] = { VP[0][3] - VP[0][2], VP[1][3] - VP[1][2], VP[2][3] - VP[2][2], VP[3][3] - VP[3][2] };
+
+        for (int i = 0; i < 6; i++) frustum[i].normalize();
+    }
+
+    bool isChunkInFrustum(const glm::vec3& min, const glm::vec3& max) {
+        for (int i = 0; i < 6; i++) {
+            const Plane& p = frustum[i];
+
+            glm::vec3 positive = {
+                p.a > 0 ? max.x : min.x,
+                p.b > 0 ? max.y : min.y,
+                p.c > 0 ? max.z : min.z
+            };
+            if (p.a * positive.x + p.b * positive.y + p.c * positive.z + p.d < 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     const float* m_verts;
     int m_renderDistance;
     size_t m_count;
@@ -114,4 +158,5 @@ private:
     std::unordered_map<ChunkCoords, Chunk*, ChunkCoordsHash> chunkMap;
 
     unsigned int m_textureAtlasID;
+    Plane frustum[6];
 };

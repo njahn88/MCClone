@@ -95,7 +95,7 @@ int main()
 
     //perpective projection matrix
     //-------------------------------------
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 5000.0f);
 
     //model matrix
     //-------------------------------------
@@ -183,7 +183,7 @@ int main()
     g_TextureAtlasID = LoadTextureAtlas();
 
 
-    ChunkManager chunkManager{vertices, g_TextureAtlasID, 20, cameraPos};
+    ChunkManager chunkManager{vertices, g_TextureAtlasID, 30, cameraPos};
 
 
 
@@ -219,7 +219,9 @@ int main()
         ourShader.setMat4("model", model);
         ourShader.setMat4("projection", projection);
 
-        chunkManager.Update();
+        glm::mat4 VP = projection * view;
+
+        chunkManager.Update(VP);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
