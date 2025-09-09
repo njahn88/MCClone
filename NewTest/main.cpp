@@ -48,7 +48,7 @@ public:
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void processInput(GLFWwindow* window, ChunkManager& chunkManager);
+void processInput(GLFWwindow* window);
 unsigned int LoadTextureAtlas();
 
 
@@ -86,9 +86,9 @@ int main()
         return -1;
     }
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CW);
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
+    //glFrontFace(GL_CW);
 
     // build and compile our shader zprogram
     // ------------------------------------
@@ -121,7 +121,6 @@ int main()
     ModelLoader modelLoader("Models/");
     std::vector<float> boxModel = modelLoader.GetModel(Model::Box);
 
-    return 0;
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -184,18 +183,21 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
 
     unsigned int g_TextureAtlasID = 0;
     g_TextureAtlasID = LoadTextureAtlas();
 
 
-    ChunkManager chunkManager{vertices, count, cameraPos, 7, g_TextureAtlasID};
+    //ChunkManager chunkManager{vertices, count, cameraPos, 7, g_TextureAtlasID};
 
 
 
@@ -211,7 +213,7 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        processInput(window, chunkManager);
+        processInput(window);
         double currentTime = glfwGetTime();
         frameCount++;
         if (currentTime - previousTime >= 1.0) {
@@ -242,7 +244,15 @@ int main()
         int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        chunkManager.DrawChunks();
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+        glBufferData(GL_ARRAY_BUFFER, boxModel.size() * sizeof(float), boxModel.data(), GL_STATIC_DRAW);
+
+        glDrawArrays(GL_TRIANGLES, 0, boxModel.size() / 8);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -255,7 +265,7 @@ int main()
     return 0;
 }
 
-void processInput(GLFWwindow* window, ChunkManager& chunkManager)
+void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
