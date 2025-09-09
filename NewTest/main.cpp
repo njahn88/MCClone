@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 #include "stb_image.h"
 
+#include "ModelLoader.h"
+
 #include "shader.h"
 
 #include <iostream>
@@ -116,7 +118,10 @@ int main()
 
     glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
 
-    
+    ModelLoader modelLoader("Models/");
+    std::vector<float> boxModel = modelLoader.GetModel(Model::Box);
+
+    return 0;
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
