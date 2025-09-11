@@ -122,59 +122,6 @@ int main()
     std::vector<float> boxModel = modelLoader.GetModel(Model::Box);
 
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    double vertices[] = {
-        // back face
-        -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // bottom-left
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right    
-         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-right              
-         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-right
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, // top-left
-        -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // bottom-left     
-        // front face
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-right        
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, // bottom-left
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // top-left 
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // top-left 
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-right        
-        // left face
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-left       
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
-        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-right
-        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-right
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
-        -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-left       
-        // right face
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, // top-right      
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right          
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // bottom-left
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
-         // bottom face          
-         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-left        
-          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
-         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
-         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
-         // top face
-         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
-          0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
-          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right                 
-          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
-         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // bottom-left  
-         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f  // top-left      
-    };
-
-    size_t count = sizeof(vertices) / sizeof(vertices[0]);
-
-
-    int digCount = 0;
-
-
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -191,13 +138,6 @@ int main()
 
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
-
-
-    unsigned int g_TextureAtlasID = 0;
-    g_TextureAtlasID = LoadTextureAtlas();
-
-
-    //ChunkManager chunkManager{vertices, count, cameraPos, 7, g_TextureAtlasID};
 
 
 
@@ -324,35 +264,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     cameraFront = glm::normalize(direction);
 
-}
-
-/*
-Retrieves the texture atlas and asigns the texture
-*/
-unsigned int LoadTextureAtlas() {
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    int width, height, nrChannels;
-    unsigned char* data = stbi_load("texture_atlas_2.jpg", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture!" << std::endl;
-        std::cout << stbi_failure_reason() << std::endl;
-    }
-    stbi_image_free(data);
-
-    return textureID;
 }
