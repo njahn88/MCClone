@@ -49,8 +49,68 @@ public:
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow* window);
-unsigned int LoadTextureAtlas();
 
+struct Component {};
+
+struct RenderComponent : public Component{
+    unsigned int m_Vbo, m_Vao;
+    std::vector<float>* m_model{};
+    bool m_modelUpdated = false;
+};
+
+struct System {
+public:
+    virtual void Update() = 0;
+};
+
+struct RenderSystem : public System{
+private:
+    std::vector<RenderComponent*> m_renderables{};
+public:
+    void AddComponent(RenderComponent* renderable) {
+        glGenVertexArrays(1, &renderable->m_Vao);
+        glBindVertexArray(renderable->m_Vao);
+
+        glGenBuffers(1, &renderable->m_Vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, renderable->m_Vbo);
+
+        // assume layout = position(3), normal(3), texcoord(2)
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        renderable->m_modelUpdated = true;
+        m_renderables.push_back(renderable);
+    }
+
+    void Update() override {
+        for (RenderComponent* renderComponent : m_renderables) {
+            unsigned int vbo = renderComponent->m_Vbo;
+            unsigned int vao = renderComponent->m_Vao;
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            std::vector<float>* model = renderComponent->m_model;
+
+
+            if (renderComponent->m_modelUpdated) {
+                glBufferData(GL_ARRAY_BUFFER, model->size() * sizeof(float), model->data(), GL_STATIC_DRAW);
+                renderComponent->m_modelUpdated = false;
+            }
+            glDrawArrays(GL_TRIANGLES, 0, model->size() / 8);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            //delete model;
+        }
+    }
+};
 
 int main()
 {
@@ -121,7 +181,13 @@ int main()
     ModelLoader modelLoader("Models/");
     std::vector<float> boxModel = modelLoader.GetModel(Model::Box);
 
+    RenderSystem renderSystem{};
 
+    RenderComponent renderComponent{};
+    renderComponent.m_model = &boxModel;
+
+
+    /*
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -138,8 +204,10 @@ int main()
 
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
+    */
 
 
+    renderSystem.AddComponent(&renderComponent);
 
     ourShader.use();
     int frameCount = 0;
@@ -184,7 +252,10 @@ int main()
         int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        glBindVertexArray(VAO);
+        //glBindVertexArray(VAO);
+
+        renderSystem.Update();
+        /*
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
         glBufferData(GL_ARRAY_BUFFER, boxModel.size() * sizeof(float), boxModel.data(), GL_STATIC_DRAW);
@@ -193,13 +264,14 @@ int main()
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
+        */
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    //glDeleteVertexArrays(1, &VAO);
+    //glDeleteBuffers(1, &VBO);
 
     glfwTerminate();
     return 0;
