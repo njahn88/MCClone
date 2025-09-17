@@ -22,6 +22,7 @@
 #include "ChunkManager.h"
 #include "Perlin.h"
 
+
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -187,26 +188,6 @@ int main()
     renderComponent.m_model = &boxModel;
 
 
-    /*
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-    */
-
-
     renderSystem.AddComponent(&renderComponent);
 
     ourShader.use();
@@ -252,19 +233,7 @@ int main()
         int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        //glBindVertexArray(VAO);
-
         renderSystem.Update();
-        /*
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-        glBufferData(GL_ARRAY_BUFFER, boxModel.size() * sizeof(float), boxModel.data(), GL_STATIC_DRAW);
-
-        glDrawArrays(GL_TRIANGLES, 0, boxModel.size() / 8);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        */
 
         glfwSwapBuffers(window);
         glfwPollEvents();
