@@ -49,6 +49,8 @@ Game::Game(const GameSpecifications& gameSpecifications) {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
+
+	m_currentScene = new MainMenu{};
 }
 
 Game::~Game() {
@@ -57,18 +59,27 @@ Game::~Game() {
 
 void Game::Run() {
 
+	float lastFrame = glfwGetTime();
+
 	while (m_gameRunning) { //main game loop
-
-
 		if(glfwWindowShouldClose(m_window)){
 			Stop();
 			return;
 		}
 
+		float currentFrame = glfwGetTime();
+		float deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		processInput(m_window);    
+
+		if (m_currentScene) {
+			m_currentScene->UpdateScene(deltaTime);
+			m_currentScene->RenderScene();
+		}
 
 
 		glfwSwapBuffers(m_window);

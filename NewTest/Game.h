@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
+#include "Scene.h"
 
 struct GameSpecifications {
 	int m_windowWidth = 500;
@@ -18,6 +19,7 @@ class Game {
 private:
 	bool m_gameRunning = true;
 	GLFWwindow* m_window = nullptr;
+	Scene* m_currentScene = nullptr;
 public:
 	Game(const GameSpecifications& gameSpecifications = GameSpecifications());
 	~Game();
