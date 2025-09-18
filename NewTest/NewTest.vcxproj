@@ -147,6 +147,7 @@
     <ClInclude Include="ChunkManager.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Perlin.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="shader.h" />
   </ItemGroup>
   <ItemGroup>
