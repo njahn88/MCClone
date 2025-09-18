@@ -1,4 +1,6 @@
 #include "Game.h"
+#include "Systems.h"
+#include "Components.h"
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -50,7 +52,20 @@ Game::Game(const GameSpecifications& gameSpecifications) {
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
-	m_currentScene = new MainMenu{};
+	m_coordinator = new Coordinator{};
+	m_coordinator->Init();
+
+	m_coordinator->RegisterComponent<Transform>();
+
+	m_renderSystem = m_coordinator->RegisterSystem<RenderSystem>();
+	{
+		Signature signature;
+		signature.set(m_coordinator->GetComponentType<Transform>());
+		m_coordinator->SetSystemSignature<RenderSystem>(signature);
+	}
+
+	Entity newEntity = m_coordinator->CreateEntity();
+	m_coordinator->AddComponent(newEntity, Transform{});
 }
 
 Game::~Game() {
@@ -76,11 +91,7 @@ void Game::Run() {
 
 		processInput(m_window);    
 
-		if (m_currentScene) {
-			m_currentScene->UpdateScene(deltaTime);
-			m_currentScene->RenderScene();
-		}
-
+		m_renderSystem->Tick();
 
 		glfwSwapBuffers(m_window);
 		glfwPollEvents();

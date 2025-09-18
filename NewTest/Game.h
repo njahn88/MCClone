@@ -6,6 +6,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include "Scene.h"
+#include "Coordinator.h"
+#include "Systems.h"
 
 struct GameSpecifications {
 	int m_windowWidth = 500;
@@ -20,6 +22,8 @@ private:
 	bool m_gameRunning = true;
 	GLFWwindow* m_window = nullptr;
 	Scene* m_currentScene = nullptr;
+	Coordinator* m_coordinator = nullptr;
+	std::shared_ptr<RenderSystem> m_renderSystem;
 public:
 	Game(const GameSpecifications& gameSpecifications = GameSpecifications());
 	~Game();
