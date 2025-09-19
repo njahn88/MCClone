@@ -155,6 +155,7 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="Perlin.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneLoader.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="Signature.h" />
     <ClInclude Include="System.h" />

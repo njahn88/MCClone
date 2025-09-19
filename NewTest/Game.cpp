@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Systems.h"
 #include "Components.h"
+#include "SceneLoader.h"
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -64,8 +65,8 @@ Game::Game(const GameSpecifications& gameSpecifications) {
 		m_coordinator->SetSystemSignature<RenderSystem>(signature);
 	}
 
-	Entity newEntity = m_coordinator->CreateEntity();
-	m_coordinator->AddComponent(newEntity, Transform{});
+	SceneLoader sceneLoader{m_coordinator};
+	sceneLoader.LoadScenes();
 }
 
 Game::~Game() {

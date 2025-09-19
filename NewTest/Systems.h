@@ -10,7 +10,7 @@ class RenderSystem : public System {
 public:
 	void Tick() {
 		for (const auto& entity : m_Entities) {
-			std::cout << "Rendering" << std::endl;
+			//std::cout << "Rendering" << std::endl;
 		}
 	}
 };
